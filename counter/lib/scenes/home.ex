@@ -1,50 +1,39 @@
 defmodule Counter.Scene.Home do
   use Scenic.Scene
-  require Logger
 
   alias Scenic.Graph
-  alias Scenic.ViewPort
 
-  import Scenic.Primitives
-  # import Scenic.Components
-
-  @note """
-    This is a very simple starter application.
-
-    If you want a more full-on example, please start from:
-
-    mix scenic.new.example
-  """
+  import Scenic.Components
 
   @text_size 24
 
-  # ============================================================================
-  # setup
-
-  # --------------------------------------------------------
-  def init(_, opts) do
-    # get the width and height of the viewport. This is to demonstrate creating
-    # a transparent full-screen rectangle to catch user input
-    {:ok, %ViewPort.Status{size: {width, height}}} = ViewPort.info(opts[:viewport])
-
-    # show the version of scenic and the glfw driver
-    scenic_ver = Application.spec(:scenic, :vsn) |> to_string()
-    glfw_ver = Application.spec(:scenic_driver_glfw, :vsn) |> to_string()
-
+  @impl Scenic.Scene
+  def init(_, _opts) do
     graph =
       Graph.build(font: :roboto, font_size: @text_size)
-      |> add_specs_to_graph([
-        text_spec("scenic: v" <> scenic_ver, translate: {20, 40}),
-        text_spec("glfw: v" <> glfw_ver, translate: {20, 40 + @text_size}),
-        text_spec(@note, translate: {20, 120}),
-        rect_spec({width, height})
-      ])
+      |> text_field("0", id: :count_text, t: {5, 5}, width: 50)
+      |> button("Count", id: :count_button, t: {80, 5})
 
-    {:ok, graph, push: graph}
+    state = %{count: 0, graph: graph}
+
+    {:ok, state, push: graph}
   end
 
-  def handle_input(event, _context, state) do
-    Logger.info("Received event: #{inspect(event)}")
+  @impl Scenic.Scene
+  def filter_event({:click, :count_button}, _from, %{count: count, graph: graph} = state) do
+    new_count = count + 1
+    new_graph = Graph.modify(graph, :count_text, &text_field(&1, "#{new_count}"))
+
+    {:noreply, %{state | count: new_count, graph: new_graph}, push: new_graph}
+  end
+
+  @impl Scenic.Scene
+  def handle_input({:key, {"Q", :press, _}}, _context, state) do
+    {:halt, state}
+  end
+
+  def handle_input(input, _context, state) do
+    IO.inspect(input, label: :input)
     {:noreply, state}
   end
 end
