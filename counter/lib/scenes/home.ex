@@ -12,7 +12,8 @@ defmodule Counter.Scene.Home do
     graph =
       Graph.build(font: :roboto, font_size: @text_size)
       |> text_field("0", id: :count_text, t: {5, 5}, width: 50)
-      |> button("Count", id: :count_button, t: {80, 5})
+      |> button("Inc", id: :inc_button, t: {70, 5}, theme: :success)
+      |> button("Dec", id: :dec_button, t: {130, 5}, theme: :success)
 
     state = %{count: 0, graph: graph}
 
@@ -20,20 +21,48 @@ defmodule Counter.Scene.Home do
   end
 
   @impl Scenic.Scene
-  def filter_event({:click, :count_button}, _from, %{count: count, graph: graph} = state) do
-    new_count = count + 1
-    new_graph = Graph.modify(graph, :count_text, &text_field(&1, "#{new_count}"))
-
-    {:noreply, %{state | count: new_count, graph: new_graph}, push: new_graph}
+  def filter_event({:click, :inc_button}, _from,  state) do
+    %{graph: new_graph} = new_state = increase_count(state)
+    {:noreply, new_state, push: new_graph}
   end
 
+  def filter_event({:click, :dec_button}, _from,  state) do
+    %{graph: new_graph} = new_state = decrease_count(state)
+
+    {:noreply, new_state, push: new_graph}
+  end
+
+
   @impl Scenic.Scene
-  def handle_input({:key, {"Q", :press, _}}, _context, state) do
+  def handle_input({:key, {"Q", _, _}}, _context, state) do
+    System.stop()
     {:halt, state}
   end
 
+  def handle_input({:key, {"+",  :press, _}}, _context, state) do
+    %{graph: new_graph} = new_state = increase_count(state)
+    {:noreply, new_state, push: new_graph}
+  end
+
+  def handle_input({:key, {"-", :press, _}}, _context, state) do
+    %{graph: new_graph} = new_state = decrease_count(state)
+    {:noreply, new_state, push: new_graph}
+  end
+
   def handle_input(input, _context, state) do
-    IO.inspect(input, label: :input)
+    IO.inspect(input)
     {:noreply, state}
+  end
+
+  defp increase_count(%{count: count, graph: graph} = state) do
+    new_count = count + 1
+    new_graph = Graph.modify(graph, :count_text, &text_field(&1, "#{new_count}"))
+%{state | count: new_count, graph: new_graph}
+  end
+
+  defp decrease_count(%{count: count, graph: graph} = state) do
+    new_count = count - 1
+    new_graph = Graph.modify(graph, :count_text, &text_field(&1, "#{new_count}"))
+%{state | count: new_count, graph: new_graph}
   end
 end

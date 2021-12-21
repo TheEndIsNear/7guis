@@ -1,11 +1,10 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
-use Mix.Config
-
+import Config
 # Configure the main viewport for the Scenic application
 config :counter, :viewport, %{
   name: :main_viewport,
-  size: {175, 50},
+  size: {200, 50},
   default_scene: {Counter.Scene.Home, nil},
   drivers: [
     %{
@@ -15,6 +14,16 @@ config :counter, :viewport, %{
     }
   ]
 }
+
+case Mix.env() do
+  :dev ->
+    config :exsync,
+      reload_timeout: 75,
+      reload_callback: {ScenicLiveReload, :reload_current_scene, []}
+
+  _ ->
+    nil
+end
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

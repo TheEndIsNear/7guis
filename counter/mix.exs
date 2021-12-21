@@ -24,7 +24,8 @@ defmodule Counter.MixProject do
   defp deps do
     [
       {:scenic, "~> 0.10.5"},
-      {:scenic_driver_glfw, "~> 0.10", targets: :host}
+      {:scenic_driver_glfw, "~> 0.10", targets: :host},
+      {:scenic_live_reload, "~> 0.2", only: :dev}
     ]
   end
 end
